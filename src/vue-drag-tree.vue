@@ -5,7 +5,7 @@
          class='treeNodeText' @mouseover='mouseOver' @mouseout='mouseOut' :style='styleObj'>
       <span v-show="model.children&&model.children.length" :class="[isClicked ? 'nodeClicked' : '','vue-drag-node-icon']"></span>
       {{model.name}}
-      <span @click="removeChild(model.id)" v-if='model.id !="0"' class="delete-icon">&nbsp;x</span>
+      <!--<span @click="removeChild(model.id)" v-if='model.id !="0"' class="delete-icon">&nbsp;x</span>-->
     </div>
     <div class='treeMargin' v-show="open" v-if="isFolder">
       <item v-for="model in model.children" :model="model" :key='model.id' :cur-node-clicked="curNodeClicked"
@@ -51,7 +51,7 @@
     computed: {
       isFolder() {
         return this.model.children &&
-          this.model.children.length
+            this.model.children.length
       },
     },
     methods: {
@@ -146,7 +146,7 @@
           return
         }
         //API: 对外开放交换后的数据的赋值操作
-        rootCom.assignData(treeData)
+        rootCom.assignData(treeData, from, to)
       },
       changeType() {
         // 用户需要高亮-->才纪录当前被点击节点
@@ -310,10 +310,6 @@
 
   .nodeClicked {
     transform: rotate(90deg);
-  }
-
-  .delete-icon {
-    color: #FF4949;
   }
 </style>
 
