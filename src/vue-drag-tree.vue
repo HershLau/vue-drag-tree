@@ -5,15 +5,15 @@
          class='treeNodeText' @mouseover='mouseOver' @mouseout='mouseOut' :style='styleObj'>
       <span v-show="model.children&&model.children.length" :class="[isClicked ? 'nodeClicked' : '','vue-drag-node-icon']"></span>
       {{model.name}}
-      <!--<span @click="removeChild(model.id)" v-if='model.id !="0"' class="delete-icon">&nbsp;x</span>-->
+      <span @click="removeChild(model.id)" v-if='model.id !="0"' class="delete-icon">&nbsp;x</span>
     </div>
     <div class='treeMargin' v-show="open" v-if="isFolder">
       <item v-for="model in model.children" :model="model" :key='model.id' :cur-node-clicked="curNodeClicked"
             :assign-data="assignData" :delete-node="deleteNode" :current-highlight='currentHighlight' :default-text='defaultText'
             　:hover-color='hoverColor' :highlight-color='highlightColor'>
       </item>
-      <!--<div class='changeTree' @click="addChild" @drop='dropPlus' @dragover='dragOverPlus' @dragenter='dragEnterPlus'>+-->
-      <!--</div>-->
+      <div class='changeTree' @click="addChild" @drop='dropPlus' @dragover='dragOverPlus' @dragenter='dragEnterPlus'>+
+      </div>
     </div>
   </div>
 </template>
@@ -71,10 +71,9 @@
         if (this.currentHighlight) {
           // 第一次点击当前节点．当前节点高亮，遍历重置其他节点的样式
           if (nodeClicked != this.model.id) {
-            let treeParent = rootTree.$parent
 
             // 遍历重置所有树组件的高亮样式
-            let nodeStack = [treeParent.$children[1]]
+            let nodeStack = [rootTree]
             while (nodeStack.length != 0) {
               let item = nodeStack.shift()
               item.styleObj.background = 'white'
@@ -91,23 +90,32 @@
         }
       },
       exchangeData(rootCom, from, to) {
-        //如果drag的目的地是 + - 符号的话，退出。
-        if (!to || !from || typeof to == 'string' || from.id == to.id) {
-          return
-        }
-
-        //如果drag的目的地不是同一层级，退出。
-        if (to.pid !== from.pid) {
-          console.error('跨越不同层级')
-          return
-        }
-
-        from = JSON.parse(JSON.stringify(from))
-        to = JSON.parse(JSON.stringify(to))
+        from = Object.assign({},from)
+        to = Object.assign({},to)
         // copy一个,最后再赋值给state.treeData.这样能保证值的变化都会触发视图刷新(因为JS判断引用类型是否相同是根据内存地址.)
-        let treeData = JSON.parse(JSON.stringify(this.model))
+        let treeData = this.model
         let nodeStack = [treeData]
+        let fromStack = [from]
+        let toStack = [to]
         let status = 0
+
+        let traverse = function (nodeStack, id) {
+          let flag = false
+          while (nodeStack.length) {
+            let item = nodeStack.shift()
+            if (item.id === id) {
+              flag = true
+            }
+            if (item.children && item.children.length > 0) {
+              nodeStack = nodeStack.concat(item.children)
+            }
+          }
+          return flag
+        }
+        if (traverse(fromStack, to.id) || traverse(toStack, from.id)) {
+          console.error('两节点存在包含关系，无法移动')
+          return
+        }
 
         // 如果from或者to节点存在父子/祖辈关系，会报id of undefined的错。这种情况不考虑拖拽功能，所以catch住，返回/return就行
         try {
@@ -161,14 +169,14 @@
         }
       },
       mouseOver(e) {
-//            if ((this.styleObj.background != '#99A9BF' || this.styleObj.background != this.hightlightColor) && e.target.className === 'treeNodeText') {
-//                e.target.style.background = this.hoverColor ? this.hoverColor : '#E5E9F2'
-//            }
+            if ((this.styleObj.background != '#99A9BF' || this.styleObj.background != this.hightlightColor) && e.target.className === 'treeNodeText') {
+                e.target.style.background = this.hoverColor ? this.hoverColor : '#E5E9F2'
+            }
       },
       mouseOut(e) {
-//            if ((this.styleObj.background != '#99A9BF' || this.styleObj.background != this.hightlightColor) && e.target.className === 'treeNodeText') {
-//                e.target.style.background = 'white'
-//            }
+            if ((this.styleObj.background != '#99A9BF' || this.styleObj.background != this.hightlightColor) && e.target.className === 'treeNodeText') {
+                e.target.style.background = 'white'
+            }
       },
       findRoot() {
         // 返回Tree的根,即递归Tree时的最顶层那个vue-drag-tree组件
