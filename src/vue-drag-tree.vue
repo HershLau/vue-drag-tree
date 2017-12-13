@@ -26,7 +26,7 @@
   let nodeClicked = undefined   // Attention: 递归的所有组件共享同一个＂顶级作用域＂（这个词或许不太正确，但就这个意思）．即：共享上面这几个let变量．这为实现当前节点的高亮提供了基础．
 
   export default {
-    name: 'VueDragTreeCom42',
+    name: 'Item',
     data: function () {
       return {
         open: this.isOpen,
@@ -266,9 +266,6 @@
           }
         }
       }
-    },
-    beforeCreate() {
-      this.$options.components.item = require('./vue-drag-tree')
     },
     created() {
       // console.log('this.hig', this.highlightColor, '|', this.hoverColor)
